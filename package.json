@@ -1,0 +1,14 @@
+{
+  "name": "agendadb",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Victor Seoane",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^26.2.0"
+  }
+}
