@@ -1,0 +1,172 @@
+<body>
+    <div id='app'></div>
+    <div id='form'></div>
+    <script>
+        const header = ['Username', 'Name', 'Surnames', 'Phone', 'Email']
+        const headerAct = ['Activity name', 'Date', 'Hour']
+        let table
+        window.onload = function () { //Inicializar la app
+            mainPage()
+        }
+        function onClickRow() {
+            const userNameAux= this.getElementsByTagName('td')[0].textContent
+            retrieveJSON('http://localhost:8000/user/' + userNameAux).then((responseAct) => {
+                app.innerHTML=''
+                form.innerHTML=''
+                const headP2= document.createElement('h2')
+                headP2.textContent = 'Activities of user '+userNameAux
+                app.appendChild(headP2)
+                table = createTable(headerAct, responseAct.activityList, undefined)
+                app.appendChild(table)
+                const but = document.createElement('button')
+                but.textContent = 'Back'
+                but.onclick = mainPage
+                app.appendChild(but)
+            })
+        }
+
+        function createTable(header, data, rowAction) {
+            const table = document.createElement('table')
+            table.style.borderCollapse = 'collapse'
+            table.style.marginLeft = 'auto'
+            table.style.marginRight = 'auto'
+            table.style.marginTop='2em'
+            const headerRow = document.createElement('tr')
+            headerRow.style.backgroundColor = 'lightsteelblue'
+            for (let h in header) {
+                const headerCell = document.createElement('th')
+                headerCell.style.border = '1px solid black'
+                headerCell.style.padding = '10px 60px 10px 30px'
+                headerCell.textContent = header[h]
+                headerRow.appendChild(headerCell)
+            }
+            table.appendChild(headerRow)
+            if(data.length===0){
+                data[0]={}
+                for(let h in header){
+                    data[0][h]='-'
+                }
+            }
+            console.log(data)
+            for (let eachUser in data) {
+                const row = document.createElement('tr')
+                let auxCell = { ...data[eachUser] }
+                for (let eachCell in auxCell) {
+                    const cell = document.createElement('td')
+                    cell.style.border = '1px solid black'
+                    cell.style.padding = '10px 60px 10px 30px'
+                    cell.textContent = auxCell[eachCell]
+                    row.appendChild(cell)
+                }
+                if (rowAction !== undefined) {
+                    row.onclick = rowAction
+                }
+                table.appendChild(row)
+            }
+            return table
+        }
+        async function retrieveJSON(url) {
+            const response = await fetch(url)
+            const body = await response.json() //text,json...
+            return body
+        }
+        function mainPage() {
+            const app = document.querySelector('div#app') //Notacion CSS
+            const mydivForm = document.querySelector('div#form') //Notacion CSS
+            app.innerHTML = ''
+            mydivForm.innerHTML=''
+            app.style.textAlign = 'center'
+            const headP = document.createElement('h2')
+            headP.textContent = 'Users in the database'
+            headP.style.marginTop = '2em'
+            app.appendChild(headP)
+            retrieveJSON('http://localhost:8000/users').then((response) => {
+                for (let u in response) {
+                    delete response[u].activityList
+                }
+                table = createTable(header, response, onClickRow)
+                app.appendChild(table)
+                const butAdd = document.createElement('button')
+                butAdd.textContent = 'Add'
+                butAdd.onclick = showForm
+                app.appendChild(butAdd)
+            })
+
+        }
+        function showForm() {
+            this.disabled=true
+            const br = document.createElement('br')
+            const divForm = document.querySelector('div#form')
+            divForm.style.textAlign = 'center'
+            const form = document.createElement('form')
+            form.name = "myForm"
+            var usernameInput = document.createElement('input')
+            usernameInput.type = 'text'
+            usernameInput.name = 'username'
+            usernameInput.placeholder = 'Username'
+            var nameInput = document.createElement('input')
+            nameInput.type = 'text'
+            nameInput.name = 'name'
+            nameInput.placeholder = 'Name'
+            var surnameInput = document.createElement('input')
+            surnameInput.type = 'text'
+            surnameInput.name = 'surname'
+            surnameInput.placeholder = 'Surname'
+            var emailInput = document.createElement('input')
+            emailInput.type = 'text'
+            emailInput.placeholder = 'Email'
+            emailInput.name = 'email'
+            var phoneInput = document.createElement('input')
+            phoneInput.type = 'text'
+            phoneInput.name = 'phone'
+            phoneInput.placeholder = 'Phone'
+            var submitBut = document.createElement('input')
+            submitBut.type = 'button'
+            submitBut.value = 'Submit'
+            submitBut.onclick = onClickSubmit
+            form.appendChild(usernameInput)
+            form.appendChild(br.cloneNode())
+            form.appendChild(nameInput)
+            form.appendChild(br.cloneNode())
+            form.appendChild(surnameInput)
+            form.appendChild(br.cloneNode())
+            form.appendChild(phoneInput)
+            form.appendChild(br.cloneNode())
+            form.appendChild(emailInput)
+            form.appendChild(br.cloneNode())
+            form.appendChild(submitBut)
+            divForm.appendChild(form)
+        }
+
+        function onClickSubmit(){
+            submitForm().then((response)=>{
+                if(response==='Duplicated user'){
+                    alert('Duplicated user')
+                }
+                mainPage()
+            })
+        }
+
+        async function submitForm() {
+            const obj = {}
+            const form = document.forms['myForm']
+            obj['userName'] = form.querySelector('input[name="username"]').value
+            obj['name'] = form.querySelector('input[name="name"]').value
+            obj['surname'] = form.querySelector('input[name="surname"]').value
+            obj['phone'] = form.querySelector('input[name="phone"]').value
+            obj['email'] = form.querySelector('input[name="email"]').value
+            obj['activityList'] = []
+
+            const response = await fetch('http://localhost:8000/user/add/', {
+                method: 'POST', 
+                body: JSON.stringify(obj),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            const body = await response.text()
+            console.log(body)
+            return body
+        }
+    </script>
+</body>

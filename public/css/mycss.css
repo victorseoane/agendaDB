@@ -1,0 +1,21 @@
+table {
+    border-collapse: collapse;
+    margin-left:auto;
+    margin-right:auto;
+}
+h2{
+    text-align: center;
+}
+div{
+    text-align: center;
+}
+th{
+    background-color: lightsteelblue;
+    font-weight: bold;
+    text-align: center;
+}
+th, td {
+    padding: 25px;
+    text-align: left;
+    border: 1px solid black;
+  }
