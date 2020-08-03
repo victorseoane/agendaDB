@@ -1,30 +1,42 @@
 const db = require('../lib/db.js')
-const {createUser} = require("../lib/user.js")
-const path = require('path')
-const fs = require('fs')
-describe('load function ',()=>{
-    it("works with empty file",()=>{
-        const loadedDb = db.load('')
-        expect(loadedDb).toEqual({})
-    })
-    it("works for dbtest.json",()=>{
-        const loadedDb = db.load(path.resolve(__dirname,'dbtest.json'))
-        expect(loadedDb.username).not.toBe(undefined)
-    })
-})
 
-describe('write function ',()=>{
-    it("works for dbtest2.JSON",()=>{
-        const pathTest2 = path.resolve(__dirname,'dbtest2.json')
-        
-        const loadedDb = db.load(pathTest2)
-        expect(loadedDb).toEqual({})
-        
-        const user = createUser("username2","Pepe","Garcia","v@gmail.com","+346863423")
-        db.write(user,pathTest2)
-        const loadedDb2 = db.load(pathTest2)
-        expect(loadedDb2).toEqual(user)
-        
-        fs.unlinkSync(pathTest2)
+
+describe('executeQuery function ',()=>{
+    it("works with error",(done)=>{
+        const query = 'SELECT * FROM nonexistingdb'
+        db.executeQuery(query, (result)=>{
+            expect(result).toEqual('ER_NO_SUCH_TABLE')
+            done()
+        })
     })
+    it("works for correct case returning an array",(done)=>{
+        const query = 'SELECT * FROM users'
+        db.executeQuery(query, (result)=>{
+            expect(Array.isArray(result)).toEqual(true)
+            done()
+        })
+    })
+
+    it("works for case in which there is no match",(done)=>{
+        const query = 'UPDATE users SET username="vseoane" WHERE name="nonexistingname"'
+        db.executeQuery(query, (result)=>{
+            expect(result).toEqual('No changes')
+            done()
+        })
+    })
+
+    it("works for correct case returning a message",(done)=>{
+        const query = 'INSERT INTO users VALUES("prueba","prueba","prueba","prueba","prueba")'
+        const query2 = 'DELETE FROM users WHERE username="prueba"'
+
+        db.executeQuery(query, (result)=>{
+            expect(result).toEqual('OK')
+                db.executeQuery(query2,(result2)=>{
+                    expect(result2).toEqual('OK')
+                    done()
+                })
+
+        })
+    })
+
 })

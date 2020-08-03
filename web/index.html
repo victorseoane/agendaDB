@@ -2,7 +2,7 @@
     <div id='app'></div>
     <div id='form'></div>
     <script>
-        const header = ['Username', 'Name', 'Surnames', 'Phone', 'Email']
+        const header = ['Username', 'Name', 'Surnames', 'Email', 'Phone']
         const headerAct = ['Activity name', 'Date', 'Hour']
         let table
         window.onload = function () { //Inicializar la app
@@ -10,13 +10,13 @@
         }
         function onClickRow() {
             const userNameAux= this.getElementsByTagName('td')[0].textContent
-            retrieveJSON('http://localhost:8000/user/' + userNameAux).then((responseAct) => {
+            retrieveJSON('http://localhost:8000/activities/' + userNameAux).then((responseAct) => {
                 app.innerHTML=''
                 form.innerHTML=''
                 const headP2= document.createElement('h2')
                 headP2.textContent = 'Activities of user '+userNameAux
                 app.appendChild(headP2)
-                table = createTable(headerAct, responseAct.activityList, undefined)
+                table = createTable(headerAct, responseAct, undefined)
                 app.appendChild(table)
                 const but = document.createElement('button')
                 but.textContent = 'Back'
@@ -41,7 +41,8 @@
                 headerRow.appendChild(headerCell)
             }
             table.appendChild(headerRow)
-            if(data.length===0){
+            if(data===undefined){
+                const data = []
                 data[0]={}
                 for(let h in header){
                     data[0][h]='-'
